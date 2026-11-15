@@ -1,0 +1,195 @@
+{
+  "name": "Supervisor Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Lexi. How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -208,
+        16
+      ],
+      "id": "4601330c-575e-4778-ac04-afc1f6cd9272",
+      "name": "When chat message received",
+      "webhookId": "984dd7d8-0cd3-4631-924f-100dae24290c"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "# ROLE\nYou are a master AI Orchestrator named Lexi. \nYour job is to coordinate activities between different specialized sub-workflows and tools, and then formulate a friendly, conversational response back to the user in Roman Urdu.\n\n# CRITICAL RULES\n- NEVER say \"I cannot check your email\", \"I don't have access\", or \"I cannot search the internet\". You DO have tools for this.\n- NEVER write emails, create content, or generate summaries yourself. Always delegate.\n- Think carefully about the sequence of events. Call tools in the correct order.\n\n# HANDLING USER REQUESTS\n\n1. EMAIL REQUESTS (Read, Send, Reply, Check Inbox):\n   - You MUST immediately call the **Email Workflow** tool.\n   - Pass the user's exact query into the workflow.\n   - CRITICAL FOR REPLIES: When replying, look closely at the data returned by the Email Workflow. The email data contains fields like `id` or `messageId`. You MUST automatically extract that ID from the tool's output data and pass it to the reply function. NEVER ask the user to provide the Message ID manually.\n   - Once the tool returns the confirmation, explain it to the user in a friendly way.\n\n2. GENERAL KNOWLEDGE / SEARCH REQUESTS (Current Events, Facts, Internet Queries):\n   - If the user asks about something you do not know, or asks you to look up information on the internet, you MUST use the **Search google in SearchApi** tool.\n   - Combine the search results into a concise, accurate answer.\n\n# RESPONSE STYLE\n- Always respond in friendly, polite Roman Urdu.\n- Keep your final responses clear and to the point.\n- Example: \"Main ne aap ka inbox check kiya hai, naya email aaya tha aur main ne uska reply bhej diya hai!\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a342d71c-b26a-4c28-b60f-f9bce3e5c53c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -352,
+        1264
+      ],
+      "id": "c1522734-a4a9-4705-b30b-deffe5f38043",
+      "name": "LLM"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        48,
+        240
+      ],
+      "id": "b03ece35-9c50-4dc5-9105-c517b46afb27",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        320
+      ],
+      "id": "45709f00-4af8-46c2-b09d-10d76b14b845",
+      "name": "OpenRouter Chat Model"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "use this tool only when external information is required.\nAfter recieving search result , provide the answer to the user .\nDo not search again for the same question",
+        "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "locationSettings": {},
+        "languageSettings": {},
+        "searchOptions": {},
+        "timeFilters": {},
+        "pagination": {},
+        "advancedOptions": {},
+        "requestOptions": {}
+      },
+      "type": "@searchapi/n8n-nodes-searchapi.searchApiTool",
+      "typeVersion": 1,
+      "position": [
+        208,
+        240
+      ],
+      "id": "952822d0-44fe-4841-b7f3-24bf6b9811cf",
+      "name": "Search google in SearchApi"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4lnW0UxJ4O59lKPR",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4lnW0UxJ4O59lKPR",
+          "cachedResultName": "Email Workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        48
+      ],
+      "id": "10aca60c-0d27-47b4-bca9-adca0dce3666",
+      "name": "Call 'Email Workflow'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search google in SearchApi": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Email Workflow'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fdbafe75-5217-4742-91a6-ec76e2eb395a",
+  "meta": {
+    "instanceId": "4962de93ae3d529c0b37e2b23247501c8f99ea7a5a1f9a0959aa223fb3492f73"
+  },
+  "nodeGroups": [],
+  "id": "guVD8R0bJjqc3FPP",
+  "tags": []
+}

@@ -1,0 +1,180 @@
+{
+  "name": "Email Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -256,
+        16
+      ],
+      "id": "e69719eb-f270-4fdf-a301-6537dc1f0dc5",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "=define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "You are a professional email assistant with access to Gmail.\n\nYou can perform these actions:\n\nSEND new emails\n\nREAD latest unread emails\n\nREPLY to existing emails\n\nRULES:\n\nWhen sending or replying, extract the recipient email address or message ID from the data\n\nWrite emails and replies in a professional and polite tone\n\nKeep emails concise and clear\n\nNEVER send or reply without confirming you have the correct recipient\n\nReturn a confirmation message after every action (sent/replied/read)\n\nOUTPUT:\n\nAfter sending: \"Email sent successfully to \"\n\nAfter reading: \"Successfully read latest unread email from \"\n\nAfter replying: \"Reply sent successfully to \""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9f14a4f7-adb9-4313-83a3-c2f233473943",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        288
+      ],
+      "id": "6491d1fd-f427-4f49-a431-4c22184d343d",
+      "name": "OpenRouter Chat Model"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        128,
+        304
+      ],
+      "id": "de2fe5c5-c3ef-4bde-9258-a2af09d32d93",
+      "name": "Send Email",
+      "webhookId": "ded2586a-b2c8-4d2c-bff8-f8f6314d7b99"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "filters": {
+          "q": "is:unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        304
+      ],
+      "id": "c6f6ceeb-3b38-4d71-bf9d-6ec6a9497dd4",
+      "name": "Read Gmail",
+      "webhookId": "b3137ede-3847-4a09-8b56-cf2b4d66d5aa"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        64
+      ],
+      "id": "2107a657-395d-4b3e-97e9-7fb63e21bde4",
+      "name": "Reply Gmail",
+      "webhookId": "69165d36-0c68-486b-9afe-0dd3e25f8c07"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": " Read my latest unread email and reply to it saying that I received the message."
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4a8297c1-c56d-40fe-8a0f-e45708a66b3c",
+  "meta": {
+    "instanceId": "4962de93ae3d529c0b37e2b23247501c8f99ea7a5a1f9a0959aa223fb3492f73"
+  },
+  "nodeGroups": [],
+  "id": "p4KqxYLgjc1jiwVt",
+  "tags": []
+}
